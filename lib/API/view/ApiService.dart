@@ -39,7 +39,7 @@ class ApiService {
       {required String message, required String modelId}) async {
     try {
       var response = await http.post(
-        Uri.parse("$BASE_URL/v1/chat/completions"), // Adjusted endpoint
+        Uri.parse("$BASE_URL/chat/completions"), // Adjusted endpoint
         headers: {
           'Authorization': 'Bearer $API_KEY',
           "Content-Type": "application/json"
