@@ -108,6 +108,15 @@
 //   }
 // }
 
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:interviewai/API/model/ChatModel.dart';
+import 'package:interviewai/API/view/ApiService.dart';
+
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -136,11 +145,19 @@ class ThirdScreen extends StatefulWidget {
 
 class _ThirdScreenState extends State<ThirdScreen> {
   List<ChatModel> mcqs = [];
+  bool _isFetching = false;
+  StreamController<List<Map<String, dynamic>>> _controller = StreamController<List<Map<String, dynamic>>>();
+  Map<int, int> _selectedAnswers = {}; // Map to keep track of selected answers
 
   @override
   void initState() {
     super.initState();
     fetchMCQs();
+    Timer.periodic(Duration(seconds: 15), (timer) {
+      if (!_isFetching) {
+        fetchResponses();
+      }
+    });
   }
 
   void fetchMCQs() async {
@@ -156,19 +173,21 @@ class _ThirdScreenState extends State<ThirdScreen> {
         modelId: "gpt-3.5-turbo-0301",
       );
 
+      print("mcq>> $mcqs");
       setState(() {});
       insertMCQsIntoDatabase(mcqs);
     } catch (error) {
       print("Error fetching MCQs: $error");
     }
   }
+
   void insertMCQsIntoDatabase(List<ChatModel> mcqs) async {
-    final String apiUrl = 'https://cc64-202-179-91-72.ngrok-free.app/des_open_ai_response/saveResponses';
+    final String apiUrl = 'https://5907-202-179-91-72.ngrok-free.app/des_open_ai_response/saveResponses';
 
     try {
       for (ChatModel chatModel in mcqs) {
         final responseText = chatModel.msg.trim();
-        // Split the response into individual questions (assuming '\n' separates the questions)
+        // Split the response into individual questions (assuming '\n\n' separates the questions)
         List<String> questions = responseText.split('\n\n');
 
         for (String questionBlock in questions) {
@@ -208,6 +227,82 @@ class _ThirdScreenState extends State<ThirdScreen> {
     }
   }
 
+  Future<void> fetchResponses() async {
+    if (!_controller.isClosed) {
+      _isFetching = true; // Set to true when fetching responses
+      final String url = 'https://5907-202-179-91-72.ngrok-free.app/fetch_route/responses'; // Update the URL to match your server endpoint
+
+      try {
+        final response = await http.get(Uri.parse(url));
+
+        if (response.statusCode == 200) {
+          // If the server returns a successful response, parse the JSON
+          List<dynamic> responseData = json.decode(response.body);
+
+          // Add detailed logging to check the response structure
+          print('Fetched Responses: $responseData');
+
+          // Map each response part to a Map
+          List<Map<String, dynamic>> mappedResponse = responseData.map((part) {
+            print('Part: $part'); // Log each part to see the structure
+            return {
+              'cardIndex': part['cardIndex'],
+              'question_text': part['question_text'],
+              'options': [
+                part['option1'],
+                part['option2'],
+                part['option3'],
+                part['option4']
+              ]
+            };
+          }).toList();
+
+          _controller.add(mappedResponse);
+        } else {
+          // If the server returns an error response, throw an exception
+          throw Exception('Failed to load responses: ${response.statusCode}');
+        }
+      } catch (error) {
+        // If an error occurs during the HTTP request, throw an exception
+        throw Exception('Failed to load responses: $error');
+      } finally {
+        _isFetching = false; // Set back to false after response is fetched
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.close();
+    super.dispose();
+  }
+
+  void saveUserResponse(user_id, int questionIndex, int selectedOption,List<String> options) async {
+    final String apiUrl = 'https://5907-202-179-91-72.ngrok-free.app/save_user_response/saveUserResponse'; // Replace with your server URL
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'user_id': '1', // Combine first name and last name as user_id
+          'question_id': questionIndex + 1,
+          'selected_option': options[selectedOption],// Assuming question_id starts from 1
+          // 'selected_option': selectedOption + 1, // Assuming options start from 1
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('User response saved successfully');
+      } else {
+        print('Failed to save user response: ${response.body}');
+      }
+    } catch (error) {
+      print('Failed to connect to the server: $error');
+    }
+  }
 
 
   @override
@@ -233,12 +328,68 @@ class _ThirdScreenState extends State<ThirdScreen> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                itemCount: mcqs.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('${index + 1}. ${mcqs[index].msg}'),
-                  );
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _controller.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Center(child: Text('No data available'));
+                  } else {
+                    var data = snapshot.data!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: data.length,
+                            itemBuilder: (context, index) {
+                              var questionData = data[index];
+                              var questionText = questionData['question_text'];
+                              var options = questionData['options'];
+
+                              print('Question: $questionText');
+                              print('Options: $options');
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${index + 1}. $questionText'),
+                                  if (options != null && options is List && options.isNotEmpty)
+                                    ...options.map((option) {
+                                      return RadioListTile<int>(
+                                        title: Text(option),
+                                        value: options.indexOf(option),
+                                        groupValue: _selectedAnswers[index],
+                                        onChanged: (int? value) {
+                                          setState(() {
+                                            _selectedAnswers[index] = value!;
+                                            List<String> stringOptions = options.map((option) => option.toString()).toList();
+                                            saveUserResponse('1', index, value, stringOptions);
+                                          });
+                                        },
+                                      );
+                                    }).toList()
+                                  else
+                                    Text('No options available'), // Handle empty options gracefully
+                                  SizedBox(height: 10),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(height: 20), // Add spacing between ListView.builder and the submit button
+                        ElevatedButton(
+                          onPressed: () {
+                            // Add functionality to submit button
+                          },
+                          child: Text('Submit'),
+                        ),
+                      ],
+                    );
+                  }
                 },
               ),
             ),
@@ -247,4 +398,6 @@ class _ThirdScreenState extends State<ThirdScreen> {
       ),
     );
   }
+
 }
+
