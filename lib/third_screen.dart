@@ -123,6 +123,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:interviewai/API/model/ChatModel.dart';
 import 'package:interviewai/API/view/ApiService.dart';
+import 'package:interviewai/constants/api_consts.dart';
 
 class ThirdScreen extends StatefulWidget {
   final String firstName;
@@ -182,7 +183,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
   }
 
   void insertMCQsIntoDatabase(List<ChatModel> mcqs) async {
-    final String apiUrl = 'https://5907-202-179-91-72.ngrok-free.app/des_open_ai_response/saveResponses';
+    final String apiUrl = '$NGROK/des_open_ai_response/saveResponses';
 
     try {
       for (ChatModel chatModel in mcqs) {
@@ -230,7 +231,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
   Future<void> fetchResponses() async {
     if (!_controller.isClosed) {
       _isFetching = true; // Set to true when fetching responses
-      final String url = 'https://5907-202-179-91-72.ngrok-free.app/fetch_route/responses'; // Update the URL to match your server endpoint
+      final String url = '$NGROK/fetch_route/responses'; // Update the URL to match your server endpoint
 
       try {
         final response = await http.get(Uri.parse(url));
@@ -278,7 +279,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
   }
 
   void saveUserResponse(user_id, int questionIndex, int selectedOption,List<String> options) async {
-    final String apiUrl = 'https://5907-202-179-91-72.ngrok-free.app/save_user_response/saveUserResponse'; // Replace with your server URL
+    final String apiUrl = '$NGROK/save_user_response/saveUserResponse'; // Replace with your server URL
 
     try {
       final response = await http.post(
@@ -301,6 +302,43 @@ class _ThirdScreenState extends State<ThirdScreen> {
       }
     } catch (error) {
       print('Failed to connect to the server: $error');
+    }
+  }
+
+  Future<void> _fetchScore() async {
+    final url = '$NGROK/score/score'; // Replace with your actual ngrok URL
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        final message = jsonResponse['message'];
+        print('Response message: $message');
+        // You can show the message in a dialog or toast
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Score'),
+              content: Text(message),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print('Failed to load score');
+        // Handle error gracefully
+      }
+    } catch (e) {
+      print('Error fetching score: $e');
+      // Handle error gracefully
     }
   }
 
@@ -383,6 +421,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
                         SizedBox(height: 20), // Add spacing between ListView.builder and the submit button
                         ElevatedButton(
                           onPressed: () {
+                            _fetchScore();
                             // Add functionality to submit button
                           },
                           child: Text('Submit'),
