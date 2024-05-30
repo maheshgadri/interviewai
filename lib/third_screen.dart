@@ -123,6 +123,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:interviewai/API/model/ChatModel.dart';
 import 'package:interviewai/API/view/ApiService.dart';
+import 'package:interviewai/common/common_widget.dart';
 import 'package:interviewai/constants/api_consts.dart';
 
 class ThirdScreen extends StatefulWidget {
@@ -147,7 +148,8 @@ class ThirdScreen extends StatefulWidget {
 class _ThirdScreenState extends State<ThirdScreen> {
   List<ChatModel> mcqs = [];
   bool _isFetching = false;
-  StreamController<List<Map<String, dynamic>>> _controller = StreamController<List<Map<String, dynamic>>>();
+  StreamController<List<Map<String, dynamic>>> _controller = StreamController<
+      List<Map<String, dynamic>>>();
   Map<int, int> _selectedAnswers = {}; // Map to keep track of selected answers
 
   @override
@@ -196,10 +198,13 @@ class _ThirdScreenState extends State<ThirdScreen> {
 
           // Parse the question block to extract the question, options, and answer
           final lines = questionBlock.split('\n');
-          if (lines.length < 5) continue; // Ensure there are at least 5 lines (1 question, 4 options, 1 answer)
+          if (lines.length < 5)
+            continue; // Ensure there are at least 5 lines (1 question, 4 options, 1 answer)
 
           final questionText = lines[0].trim();
-          final options = lines.sublist(1, 5).map((line) => line.trim()).toList();
+          final options = lines.sublist(1, 5)
+              .map((line) => line.trim())
+              .toList();
           final answer = lines[5].replaceFirst('Answer: ', '').trim();
 
           final httpResponse = await http.post(
@@ -219,7 +224,8 @@ class _ThirdScreenState extends State<ThirdScreen> {
           if (httpResponse.statusCode == 200) {
             print('Question "$questionText" saved successfully');
           } else {
-            print('Failed to save question "$questionText". Error: ${responseData['error']}');
+            print(
+                'Failed to save question "$questionText". Error: ${responseData['error']}');
           }
         }
       }
@@ -278,7 +284,8 @@ class _ThirdScreenState extends State<ThirdScreen> {
     super.dispose();
   }
 
-  void saveUserResponse(user_id, int questionIndex, int selectedOption,List<String> options) async {
+  void saveUserResponse(user_id, int questionIndex, int selectedOption,
+      List<String> options) async {
     final String apiUrl = '$NGROK/save_user_response/saveUserResponse'; // Replace with your server URL
 
     try {
@@ -288,9 +295,11 @@ class _ThirdScreenState extends State<ThirdScreen> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'user_id': '1', // Combine first name and last name as user_id
+          'user_id': '1',
+          // Combine first name and last name as user_id
           'question_id': questionIndex + 1,
-          'selected_option': options[selectedOption],// Assuming question_id starts from 1
+          'selected_option': options[selectedOption],
+          // Assuming question_id starts from 1
           // 'selected_option': selectedOption + 1, // Assuming options start from 1
         }),
       );
@@ -314,13 +323,35 @@ class _ThirdScreenState extends State<ThirdScreen> {
         final jsonResponse = jsonDecode(response.body);
         final message = jsonResponse['message'];
         print('Response message: $message');
-        // You can show the message in a dialog or toast
+
+        // Extract correct answers count and attempted questions count from the message
+        final correctAnswersMatch = RegExp(r'Correct Answered Count: (\d+)').firstMatch(message);
+        final attemptedQuestionsMatch = RegExp(r'Total Answered: (\d+)').firstMatch(message);
+        final correctAnswers = correctAnswersMatch != null ? int.parse(correctAnswersMatch.group(1)!) : 0;
+        final attemptedQuestions = attemptedQuestionsMatch != null ? int.parse(attemptedQuestionsMatch.group(1)!) : 0;
+
+        // print('Correct Answers: $correctAnswers');
+        // print('Attempted Questions: $attemptedQuestions');
+
+        // Determine the message to display based on the number of correct answers
+        String displayMessage;
+        if (correctAnswers < 4) {
+          displayMessage = 'You have not cleared the interview.\n\n';
+        } else {
+          displayMessage = 'You have cleared this round ';
+        }
+
+        displayMessage += '  '
+            ' Correct Answers: $correctAnswers\nAttempted Questions: $attemptedQuestions\n\n$message';
+
+
+        // Show the message in a dialog
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Score'),
-              content: Text(message),
+              content: Text(displayMessage),
               actions: <Widget>[
                 TextButton(
                   child: Text('OK'),
@@ -335,12 +366,71 @@ class _ThirdScreenState extends State<ThirdScreen> {
       } else {
         print('Failed to load score');
         // Handle error gracefully
+        _showErrorDialog('Failed to load score');
       }
     } catch (e) {
       print('Error fetching score: $e');
       // Handle error gracefully
+      _showErrorDialog('Error fetching score: $e');
     }
   }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Future<void> _fetchScore() async {
+  //   final url = '$NGROK/score/score'; // Replace with your actual ngrok URL
+  //   try {
+  //     final response = await http.get(Uri.parse(url));
+  //
+  //     if (response.statusCode == 200) {
+  //       final jsonResponse = jsonDecode(response.body);
+  //       final message = jsonResponse['message'];
+  //       print('Response message: $message');
+  //       // You can show the message in a dialog or toast
+  //       showDialog(
+  //         context: context,
+  //         builder: (BuildContext context) {
+  //           return AlertDialog(
+  //             title: Text('Score'),
+  //             content: Text(message),
+  //             actions: <Widget>[
+  //               TextButton(
+  //                 child: Text('OK'),
+  //                 onPressed: () {
+  //                   Navigator.of(context).pop();
+  //                 },
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       );
+  //     } else {
+  //       print('Failed to load score');
+  //       // Handle error gracefully
+  //     }
+  //   } catch (e) {
+  //     print('Error fetching score: $e');
+  //     // Handle error gracefully
+  //   }
+  // }
 
 
   @override
@@ -350,19 +440,44 @@ class _ThirdScreenState extends State<ThirdScreen> {
         title: Text('Technical Round'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(10.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('First Name: ${widget.firstName}'),
-            Text('Last Name: ${widget.lastName}'),
-            Text('Designation: ${widget.designation}'),
-            Text('Industry: ${widget.industry}'),
-            Text('Years of Experience: ${widget.yearsOfExperience}'),
-            SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              child:
+              Card(
+
+                elevation: 4.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('First Name: ${widget.firstName}', style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('Last Name: ${widget.lastName}', style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('Designation: ${widget.designation}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('Industry: ${widget.industry}', style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('Years of Experience: ${widget.yearsOfExperience}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                    ],
+                  ),
+                ),
+              ),),
+            SizedBox(height: 10),
             Text(
               'Multiple Choice Questions:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             SizedBox(height: 10),
             Expanded(
@@ -395,7 +510,8 @@ class _ThirdScreenState extends State<ThirdScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('${index + 1}. $questionText'),
-                                  if (options != null && options is List && options.isNotEmpty)
+                                  if (options != null && options is List &&
+                                      options.isNotEmpty)
                                     ...options.map((option) {
                                       return RadioListTile<int>(
                                         title: Text(option),
@@ -404,27 +520,47 @@ class _ThirdScreenState extends State<ThirdScreen> {
                                         onChanged: (int? value) {
                                           setState(() {
                                             _selectedAnswers[index] = value!;
-                                            List<String> stringOptions = options.map((option) => option.toString()).toList();
-                                            saveUserResponse('1', index, value, stringOptions);
+                                            List<String> stringOptions = options
+                                                .map((option) =>
+                                                option.toString()).toList();
+                                            saveUserResponse('1', index, value,
+                                                stringOptions);
                                           });
                                         },
                                       );
                                     }).toList()
                                   else
-                                    Text('No options available'), // Handle empty options gracefully
+                                    Text('No options available'),
+                                  // Handle empty options gracefully
                                   SizedBox(height: 10),
                                 ],
                               );
                             },
                           ),
                         ),
-                        SizedBox(height: 20), // Add spacing between ListView.builder and the submit button
-                        ElevatedButton(
-                          onPressed: () {
-                            _fetchScore();
-                            // Add functionality to submit button
-                          },
-                          child: Text('Submit'),
+                        SizedBox(height: 20),
+                        // Add spacing between ListView.builder and the submit button
+                        // Center(
+                        //   child: SizedBox(
+                        //     width: 200, // Set the desired width here
+                        //     child: ElevatedButton(
+                        //       onPressed: () {
+                        //         _fetchScore();
+                        //         // Add functionality to submit button
+                        //       },
+                        //       child: Text('Submit',style: TextStyle(
+                        //           fontWeight: FontWeight.bold, fontSize: 18)),
+                        //     ),
+                        //   ),
+                        // ),
+
+                        Center(
+                          child: CommonWidget(
+                            text: 'Submit',
+                            onPressed: () {
+                                     _fetchScore();
+                            },
+                          ),
                         ),
                       ],
                     );
@@ -437,6 +573,5 @@ class _ThirdScreenState extends State<ThirdScreen> {
       ),
     );
   }
-
 }
 

@@ -30,7 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isListening = false;
   bool _speechAvailable = false;
   bool _ctcQuestionsAsked = false;
-
+  bool _sendingMessage = false;
   @override
   void initState() {
     super.initState();
@@ -215,8 +215,19 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _sendMessage,
+                _sendingMessage
+                    ? CircularProgressIndicator() // Display progress indicator while sending message
+                    : ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _sendingMessage = true;
+                    });
+                    _sendMessage().then((_) {
+                      setState(() {
+                        _sendingMessage = false;
+                      });
+                    });
+                  },
                   child: Text('Send'),
                 ),
                 IconButton(
