@@ -15,8 +15,8 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class ChatScreen extends StatefulWidget {
   final List<String> messages;
-
-  ChatScreen({required this.messages});
+  final int id;
+  ChatScreen({required this.messages,required this.id});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -34,7 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-
+    print('ID>>i: ${widget.id}');
     // // Inside initState() method in ChatScreen
     // SharedPreferences prefs =  SharedPreferences.getInstance() as SharedPreferences;
     // String firstName = prefs.getString('firstName') ?? '';
@@ -152,6 +152,7 @@ class _ChatScreenState extends State<ChatScreen> {
             designation: designation,
             industry: industry,
             yearsOfExperience: yearsOfExperience,
+            id: widget.id,
           ),
         ),
       );
@@ -179,6 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('ID: ${widget.id}');
     return Scaffold(
       appBar: AppBar(
         title: Text('1st Round'),

@@ -33,7 +33,7 @@ import 'package:interviewai/form/model/form_model.dart' as InteForm;
 class FormController extends GetxController {
   final InteForm.FormData formData = InteForm.FormData(); // Instance of FormData
 
-  Future<void> submitForm() async {
+  Future<void> submitForm(int id) async {
 
     // Inside submitForm() method in FormController
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -69,7 +69,7 @@ class FormController extends GetxController {
       });
 
       // Navigate to chat screen with form data and responses
-      Get.to(() => ChatScreen(messages: messages));
+      Get.to(() => ChatScreen(messages: messages,id: id));
     } catch (e) {
       // Handle errors
       Get.dialog(

@@ -132,6 +132,7 @@ class ThirdScreen extends StatefulWidget {
   final String designation;
   final String industry;
   final String yearsOfExperience;
+  final int id;
 
   ThirdScreen({
     required this.firstName,
@@ -139,6 +140,7 @@ class ThirdScreen extends StatefulWidget {
     required this.designation,
     required this.industry,
     required this.yearsOfExperience,
+    required this.id,
   });
 
   @override
@@ -155,10 +157,11 @@ class _ThirdScreenState extends State<ThirdScreen> {
   @override
   void initState() {
     super.initState();
+    print('ID>>init: ${widget.id}');
     fetchMCQs();
     Timer.periodic(Duration(seconds: 15), (timer) {
       if (!_isFetching) {
-        fetchResponses();
+        fetchResponses(widget.id);
       }
     });
   }
@@ -178,13 +181,62 @@ class _ThirdScreenState extends State<ThirdScreen> {
 
       print("mcq>> $mcqs");
       setState(() {});
-      insertMCQsIntoDatabase(mcqs);
+      insertMCQsIntoDatabase(mcqs,widget.id);
     } catch (error) {
       print("Error fetching MCQs: $error");
     }
   }
 
-  void insertMCQsIntoDatabase(List<ChatModel> mcqs) async {
+  // void insertMCQsIntoDatabase(List<ChatModel> mcqs) async {
+  //   final String apiUrl = '$NGROK/des_open_ai_response/saveResponses';
+  //
+  //   try {
+  //     for (ChatModel chatModel in mcqs) {
+  //       final responseText = chatModel.msg.trim();
+  //       // Split the response into individual questions (assuming '\n\n' separates the questions)
+  //       List<String> questions = responseText.split('\n\n');
+  //
+  //       for (String questionBlock in questions) {
+  //         if (questionBlock.isEmpty) continue;
+  //
+  //         // Parse the question block to extract the question, options, and answer
+  //         final lines = questionBlock.split('\n');
+  //         if (lines.length < 5)
+  //           continue; // Ensure there are at least 5 lines (1 question, 4 options, 1 answer)
+  //
+  //         final questionText = lines[0].trim();
+  //         final options = lines.sublist(1, 5)
+  //             .map((line) => line.trim())
+  //             .toList();
+  //         final answer = lines[5].replaceFirst('Answer: ', '').trim();
+  //
+  //         final httpResponse = await http.post(
+  //           Uri.parse(apiUrl),
+  //           headers: <String, String>{
+  //             'Content-Type': 'application/json; charset=UTF-8',
+  //           },
+  //           body: jsonEncode(<String, dynamic>{
+  //             'question_text': questionText,
+  //             'options': options,
+  //             'answer': answer,
+  //           }),
+  //         );
+  //
+  //         final responseData = jsonDecode(httpResponse.body);
+  //
+  //         if (httpResponse.statusCode == 200) {
+  //           print('Question "$questionText" saved successfully');
+  //         } else {
+  //           print(
+  //               'Failed to save question "$questionText". Error: ${responseData['error']}');
+  //         }
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print('Failed to connect to the server. Error: $e');
+  //   }
+  // }
+  void insertMCQsIntoDatabase(List<ChatModel> mcqs, int id) async {
     final String apiUrl = '$NGROK/des_open_ai_response/saveResponses';
 
     try {
@@ -198,13 +250,10 @@ class _ThirdScreenState extends State<ThirdScreen> {
 
           // Parse the question block to extract the question, options, and answer
           final lines = questionBlock.split('\n');
-          if (lines.length < 5)
-            continue; // Ensure there are at least 5 lines (1 question, 4 options, 1 answer)
+          if (lines.length < 5) continue; // Ensure there are at least 5 lines (1 question, 4 options, 1 answer)
 
           final questionText = lines[0].trim();
-          final options = lines.sublist(1, 5)
-              .map((line) => line.trim())
-              .toList();
+          final options = lines.sublist(1, 5).map((line) => line.trim()).toList();
           final answer = lines[5].replaceFirst('Answer: ', '').trim();
 
           final httpResponse = await http.post(
@@ -213,8 +262,12 @@ class _ThirdScreenState extends State<ThirdScreen> {
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: jsonEncode(<String, dynamic>{
+              'user_id': id, // Add the id here
               'question_text': questionText,
-              'options': options,
+              'option1': options[0],
+              'option2': options[1],
+              'option3': options[2],
+              'option4': options[3],
               'answer': answer,
             }),
           );
@@ -224,8 +277,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
           if (httpResponse.statusCode == 200) {
             print('Question "$questionText" saved successfully');
           } else {
-            print(
-                'Failed to save question "$questionText". Error: ${responseData['error']}');
+            print('Failed to save question "$questionText". Error: ${responseData['error']}');
           }
         }
       }
@@ -234,10 +286,10 @@ class _ThirdScreenState extends State<ThirdScreen> {
     }
   }
 
-  Future<void> fetchResponses() async {
+  Future<void> fetchResponses(int userId) async {
     if (!_controller.isClosed) {
       _isFetching = true; // Set to true when fetching responses
-      final String url = '$NGROK/fetch_route/responses'; // Update the URL to match your server endpoint
+      final String url = '$NGROK/fetch_route/responses?user_id=$userId'; // Use the userId parameter
 
       try {
         final response = await http.get(Uri.parse(url));
@@ -253,7 +305,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
           List<Map<String, dynamic>> mappedResponse = responseData.map((part) {
             print('Part: $part'); // Log each part to see the structure
             return {
-              'cardIndex': part['cardIndex'],
+              'id': part['id'],
               'question_text': part['question_text'],
               'options': [
                 part['option1'],
@@ -278,6 +330,53 @@ class _ThirdScreenState extends State<ThirdScreen> {
     }
   }
 
+
+
+
+  // Future<void> fetchResponses() async {
+  //   if (!_controller.isClosed) {
+  //     _isFetching = true; // Set to true when fetching responses
+  //     final String url = '$NGROK/fetch_route/responses'; // Update the URL to match your server endpoint
+  //
+  //     try {
+  //       final response = await http.get(Uri.parse(url));
+  //
+  //       if (response.statusCode == 200) {
+  //         // If the server returns a successful response, parse the JSON
+  //         List<dynamic> responseData = json.decode(response.body);
+  //
+  //         // Add detailed logging to check the response structure
+  //         print('Fetched Responses: $responseData');
+  //
+  //         // Map each response part to a Map
+  //         List<Map<String, dynamic>> mappedResponse = responseData.map((part) {
+  //           print('Part: $part'); // Log each part to see the structure
+  //           return {
+  //             'cardIndex': part['cardIndex'],
+  //             'question_text': part['question_text'],
+  //             'options': [
+  //               part['option1'],
+  //               part['option2'],
+  //               part['option3'],
+  //               part['option4']
+  //             ]
+  //           };
+  //         }).toList();
+  //
+  //         _controller.add(mappedResponse);
+  //       } else {
+  //         // If the server returns an error response, throw an exception
+  //         throw Exception('Failed to load responses: ${response.statusCode}');
+  //       }
+  //     } catch (error) {
+  //       // If an error occurs during the HTTP request, throw an exception
+  //       throw Exception('Failed to load responses: $error');
+  //     } finally {
+  //       _isFetching = false; // Set back to false after response is fetched
+  //     }
+  //   }
+  // }
+
   @override
   void dispose() {
     _controller.close();
@@ -295,7 +394,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'user_id': '1',
+          'user_id': user_id,
           // Combine first name and last name as user_id
           'question_id': questionIndex + 1,
           'selected_option': options[selectedOption],
@@ -435,6 +534,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('ID: ${widget.id}');
     return Scaffold(
       appBar: AppBar(
         title: Text('Technical Round'),
@@ -468,6 +568,9 @@ class _ThirdScreenState extends State<ThirdScreen> {
                       Text('Industry: ${widget.industry}', style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 18)),
                       Text('Years of Experience: ${widget.yearsOfExperience}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text('id: ${widget.id}',
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18)),
                     ],
