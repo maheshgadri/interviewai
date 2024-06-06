@@ -383,8 +383,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
     super.dispose();
   }
 
-  void saveUserResponse(user_id, int questionIndex, int selectedOption,
-      List<String> options) async {
+  void saveUserResponse(int user_id, int questionIndex, int selectedOption, List<String> options) async {
     final String apiUrl = '$NGROK/save_user_response/saveUserResponse'; // Replace with your server URL
 
     try {
@@ -394,12 +393,9 @@ class _ThirdScreenState extends State<ThirdScreen> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'user_id': user_id,
-          // Combine first name and last name as user_id
-          'question_id': questionIndex + 1,
-          'selected_option': options[selectedOption],
-          // Assuming question_id starts from 1
-          // 'selected_option': selectedOption + 1, // Assuming options start from 1
+          'user_id': user_id, // Use the passed user_id
+          'question_id': questionIndex + 1, // Assuming question_id starts from 1
+          'selected_option': options[selectedOption], // Assuming options start from 1
         }),
       );
 
@@ -413,8 +409,9 @@ class _ThirdScreenState extends State<ThirdScreen> {
     }
   }
 
-  Future<void> _fetchScore() async {
-    final url = '$NGROK/score/score'; // Replace with your actual ngrok URL
+  Future<void> _fetchScore(int user_id) async {
+    final url = '$NGROK/score/score?user_id=$user_id';
+    print("$url>>");// Replace with your actual ngrok URL
     try {
       final response = await http.get(Uri.parse(url));
 
@@ -626,7 +623,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
                                             List<String> stringOptions = options
                                                 .map((option) =>
                                                 option.toString()).toList();
-                                            saveUserResponse('1', index, value,
+                                            saveUserResponse(widget.id, index, value,
                                                 stringOptions);
                                           });
                                         },
@@ -661,7 +658,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
                           child: CommonWidget(
                             text: 'Submit',
                             onPressed: () {
-                                     _fetchScore();
+                                     _fetchScore(widget.id);
                             },
                           ),
                         ),
