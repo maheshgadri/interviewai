@@ -383,7 +383,33 @@ class _ThirdScreenState extends State<ThirdScreen> {
     super.dispose();
   }
 
-  void saveUserResponse(int user_id, int questionIndex, int selectedOption, List<String> options) async {
+  // void saveUserResponse(int user_id, int questionIndex, int selectedOption, List<String> options) async {
+  //   final String apiUrl = '$NGROK/save_user_response/saveUserResponse'; // Replace with your server URL
+  //
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: <String, String>{
+  //         'Content-Type': 'application/json; charset=UTF-8',
+  //       },
+  //       body: jsonEncode(<String, dynamic>{
+  //         'user_id': user_id, // Use the passed user_id
+  //         'question_id': questionIndex + 1, // Assuming question_id starts from 1
+  //         'selected_option': options[selectedOption], // Assuming options start from 1
+  //       }),
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       print('User response saved successfully');
+  //     } else {
+  //       print('Failed to save user response: ${response.body}');
+  //     }
+  //   } catch (error) {
+  //     print('Failed to connect to the server: $error');
+  //   }
+  // }
+
+  void saveUserResponse(int user_id, String question_text, int selectedOption, List<String> options) async {
     final String apiUrl = '$NGROK/save_user_response/saveUserResponse'; // Replace with your server URL
 
     try {
@@ -393,9 +419,9 @@ class _ThirdScreenState extends State<ThirdScreen> {
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode(<String, dynamic>{
-          'user_id': user_id, // Use the passed user_id
-          'question_id': questionIndex + 1, // Assuming question_id starts from 1
-          'selected_option': options[selectedOption], // Assuming options start from 1
+          'user_id': user_id,
+          'question_text': question_text, // Adjusted to send question_text
+          'selected_option': options[selectedOption],
         }),
       );
 
@@ -623,7 +649,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
                                             List<String> stringOptions = options
                                                 .map((option) =>
                                                 option.toString()).toList();
-                                            saveUserResponse(widget.id, index, value,
+                                            saveUserResponse(widget.id, questionText, value,
                                                 stringOptions);
                                           });
                                         },
