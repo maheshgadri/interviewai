@@ -47,8 +47,23 @@ class _ChatScreenState extends State<ChatScreen> {
     _initSpeech();
     _initTts();
     _speakMessages();
+    _loadUserDetails();
+
+
   }
 
+  Future<void> _loadUserDetails() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String firstName = prefs.getString('firstName') ?? '';
+    String lastName = prefs.getString('lastName') ?? '';
+    String designation = prefs.getString('designation') ?? '';
+    String yearsOfExperience = prefs.getString('yearsOfExperience') ?? '';
+
+    print('First Name: $firstName');
+    print('Last Name: $lastName');
+    print('Designation: $designation');
+    print('Years of Experience: $yearsOfExperience');
+  }
   Future<void> _initSpeech() async {
     _speechAvailable = await _speechToText.initialize(
       onStatus: (val) => print('onStatus: $val'),
@@ -139,6 +154,12 @@ class _ChatScreenState extends State<ChatScreen> {
       String designation = prefs.getString('designation') ?? '';
       String industry = prefs.getString('industry') ?? '';
       String yearsOfExperience = prefs.getString('yearsOfExperience') ?? '';
+      print('First Name>>: $firstName');
+      print('Last Name: $lastName');
+      print('Designation: $designation');
+      print('Industry: $industry');
+      print('Years of Experience>>: $yearsOfExperience');
+
 
       // Delay navigation for 5 seconds
       await Future.delayed(Duration(seconds: 5));

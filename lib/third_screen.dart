@@ -588,8 +588,8 @@ class _ThirdScreenState extends State<ThirdScreen> {
                       Text('Designation: ${widget.designation}',
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18)),
-                      Text('Industry: ${widget.industry}', style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 18)),
+                      // Text('Industry: ${widget.industry}', style: TextStyle(
+                      //     fontWeight: FontWeight.bold, fontSize: 18)),
                       Text('Years of Experience: ${widget.yearsOfExperience}',
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 18)),

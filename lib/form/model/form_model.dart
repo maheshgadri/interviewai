@@ -6,4 +6,5 @@ class FormData {
   String designation = '';
   String industry = '';
   String yearsOfExperience = '';
+  String uploadedFileText = '';
 }

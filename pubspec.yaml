@@ -40,6 +40,12 @@ dependencies:
   google_maps_flutter: ^2.1.0
   flutter_tts: ^3.2.2
   speech_to_text: ^6.3.0
+  file_picker: ^4.2.3
+  permission_handler: ^11.3.1
+  syncfusion_flutter_pdf: ^25.2.5
+
+  pdf: ^3.10.8
+  dio: ^4.0.0
 
 
 
