@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:interviewai/form/view/form_view.dart';
 import 'package:interviewai/intchat/view/intcha.dart';
 import 'package:interviewai/login/controller/login_controller.dart';
+import 'package:interviewai/profile/view/profile_screen.dart';
 import 'package:interviewai/splash_screen.dart';
 import 'package:interviewai/welcom_screen.dart';
 
@@ -44,6 +45,10 @@ class MyApp extends StatelessWidget {
               Get.put(SignUpController());
               return SignUpView();
             },
+          ),
+          GetPage(
+            name: '/profiledetails',
+            page: () => ProfilePage(id: Get.arguments['id']), // Pass the id from arguments
           ),
           GetPage(name: '/form', page: () => FormPage()),
           // GetPage(name: '/chat', page: () => ChatScreen(messages: [])), // Dummy initial messages

@@ -151,7 +151,7 @@ class FormController extends GetxController {
     // Prepare data to send to ChatGPT
     String prompt =
         'Document Text: ${formData.uploadedFileText}\n'
-        'Extract first name, last name, years of experience in numbers, designation from the extracted text and greet the candidate with a short note of 30 words. Don\'t include "Thank you" and "Looking forward to hearing back from you", "Best regards", etc. Ask about the project.';
+        'Extract first name, last name, always converts years of experience in numbers, designation from the extracted text and greet the candidate with a short note of 30 words. Don\'t include "Thank you" and "Looking forward to hearing back from you", "Best regards", etc. Ask about the project.';
 
     try {
       // Send data to ChatGPT and handle responses
@@ -165,31 +165,62 @@ class FormController extends GetxController {
 
       // Print OpenAI response and extract required details
       print('OpenAI Response:');
-      String? firstName, lastName, designation;
-      String? yearsOfExperience;
+      String? firstName, lastName, designation, yearsOfExperience;
 
       messages.forEach((message) {
         print(message);
 
         // Extract details from the response message
-        RegExp firstNameExp = RegExp(r'First Name: (\w+)');
-        RegExp lastNameExp = RegExp(r'Last Name: (\w+)');
-        RegExp designationExp = RegExp(r'Designation: (\w+)');
-        RegExp yearsExp = RegExp(r'Years of Experience: (\d+)');
+        RegExp firstNameExp = RegExp(r'First name: (\w+)', caseSensitive: false);
+        RegExp lastNameExp = RegExp(r'Last name: (\w+)', caseSensitive: false);
+        RegExp designationExp = RegExp(r'Designation: (.+)', caseSensitive: false);
+        RegExp yearsExp = RegExp(r'Years of experience: (\w+)', caseSensitive: false);
 
-        firstName = firstNameExp.firstMatch(message)?.group(1);
-        lastName = lastNameExp.firstMatch(message)?.group(1);
-        designation = designationExp.firstMatch(message)?.group(1);
-        // yearsOfExperience = int.tryParse(yearsExp.firstMatch(message)?.group(1) ?? '');
-        yearsOfExperience= yearsExp.firstMatch(message)?.group(1);
+        // Try to extract each piece of information
+        if (firstName == null) {
+          var match = firstNameExp.firstMatch(message);
+          if (match != null) {
+            firstName = match.group(1);
+          }
+        }
+        if (lastName == null) {
+          var match = lastNameExp.firstMatch(message);
+          if (match != null) {
+            lastName = match.group(1);
+          }
+        }
+        if (designation == null) {
+          var match = designationExp.firstMatch(message);
+          if (match != null) {
+            designation = match.group(1);
+          }
+        }
+        if (yearsOfExperience == null) {
+          var match = yearsExp.firstMatch(message);
+          if (match != null) {
+            yearsOfExperience = match.group(1);
+          }
+        }
       });
+
+      // Log extracted data to verify
+      print('Extracted Data:');
+      print('First Name: $firstName');
+      print('Last Name: $lastName');
+      print('Designation: $designation');
+      print('Years of Experience: $yearsOfExperience');
+
+      // Handle cases where data might be missing or not extracted correctly
+      if (firstName == null || lastName == null || designation == null || yearsOfExperience == null) {
+        throw Exception('Failed to extract all required information from OpenAI response');
+      }
 
       // Save details to shared preferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('firstName', firstName ?? '');
-      await prefs.setString('lastName', lastName ?? '');
-      await prefs.setString('designation', designation ?? '');
-      await prefs.setString('yearsOfExperience', yearsOfExperience ?? '');
+      await prefs.setString('firstName', firstName!);
+      await prefs.setString('lastName', lastName!);
+      await prefs.setString('designation', designation!);
+      await prefs.setString('yearsOfExperience', yearsOfExperience!);
 
       // Navigate to chat screen with form data and responses
       Get.to(() => ChatScreen(messages: messages, id: id));

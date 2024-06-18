@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:interviewai/common/common_widget.dart';
 import 'package:interviewai/form/controller/form_controller.dart';
 import 'package:get/get.dart';
+import 'package:interviewai/profile/view/profile_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:file_picker/file_picker.dart';
@@ -218,7 +219,7 @@ class _FormPageState extends State<FormPage> {
                     children: [
                       CircleAvatar(
                         radius: 25,
-                        backgroundImage: AssetImage('assets/images/guide.png'), // Replace with your image path
+                        backgroundImage: AssetImage('assets/ki.png'), // Replace with your image path
                       ),
                       SizedBox(width: 10),
                       Flexible(
@@ -343,23 +344,38 @@ class _FormPageState extends State<FormPage> {
                   ],
                   SizedBox(height: 20),
                   Center(
-                    child: _isLoading
-                        ? CircularProgressIndicator()
-                        : CommonWidget(
-                      text: 'Ready to Start Interview',
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _formKey.currentState!.save();
-                          setState(() {
-                            _isLoading = true;
-                          });
-                          _controller.submitForm(id).then((_) {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          });
-                        }
-                      },
+                    child: Column(
+                      children: [
+                        if (_uploadedFilePath == null)
+                          Text(
+                            'Please upload your CV to proceed',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        SizedBox(height: 10),
+                        _isLoading
+                            ? CircularProgressIndicator()
+                            : ElevatedButton(
+                          onPressed: _uploadedFilePath == null
+                              ? null
+                              : () {
+                            if (_formKey.currentState!.validate()) {
+                              _formKey.currentState!.save();
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              _controller.submitForm(id).then((_) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              });
+                            }
+                          },
+                          child: Text('Click to Start Interview'),
+                          style: ElevatedButton.styleFrom(
+                            primary: _uploadedFilePath == null ? Colors.grey : Colors.teal,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -404,7 +420,9 @@ class _FormPageState extends State<FormPage> {
       // Handle Quiz tab
         break;
       case 2:
-      // Handle Profile tab
+      // Handle Profile tab.
+      //   Get.to(ProfilePage(id: id));
+        Get.toNamed('/profiledetails', arguments: {'id': id,'username':username});
         break;
     }
   }
