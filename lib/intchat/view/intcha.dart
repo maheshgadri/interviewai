@@ -205,6 +205,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('1st Round'),
+        backgroundColor: Colors.black12,
       ),
       body: Column(
         children: [
@@ -215,9 +216,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
                   return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    color: Colors.deepPurple.shade50,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(_messages[index]),
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        _messages[index],
+                        style: TextStyle(fontSize: 16, color: Colors.brown.shade900),
+                      ),
                     ),
                   );
                 },
@@ -233,13 +242,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'Type a message',
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade200,
                     ),
                   ),
                 ),
                 SizedBox(width: 8),
                 _sendingMessage
-                    ? CircularProgressIndicator() // Display progress indicator while sending message
+                    ? CircularProgressIndicator(color: Colors.deepPurple) // Custom color for the progress indicator
                     : ElevatedButton(
                   onPressed: () {
                     setState(() {
@@ -251,10 +264,19 @@ class _ChatScreenState extends State<ChatScreen> {
                       });
                     });
                   },
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.orangeAccent, // Background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Rounded corners
+                    ),
+                  ),
                   child: Text('Send'),
                 ),
                 IconButton(
-                  icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                  icon: Icon(
+                    _isListening ? Icons.mic : Icons.mic_none,
+                    color: Colors.deepPurple,
+                  ),
                   onPressed: _startListening,
                 ),
               ],
@@ -264,6 +286,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
+
 }
 
 
