@@ -17,6 +17,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:image_picker/image_picker.dart';
+
+
+
 class FormPage extends StatefulWidget {
   @override
   _FormPageState createState() => _FormPageState();
@@ -26,7 +29,7 @@ class _FormPageState extends State<FormPage> {
   final FormController _controller = Get.put(FormController());
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-
+  int _selectedIndex = 0;
   late String username;
   late int id;
   late TextEditingController firstNameController;
@@ -44,6 +47,12 @@ class _FormPageState extends State<FormPage> {
 
     // Initialize the TextEditingController with the username value
     firstNameController = TextEditingController(text: username);
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
@@ -196,194 +205,7 @@ class _FormPageState extends State<FormPage> {
         elevation: 0,
         backgroundColor: Colors.teal,
       ),
-      body: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10,vertical:10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-          gradient: LinearGradient(
-            colors: [Colors.orangeAccent, Colors.tealAccent],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(25.0),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundImage: AssetImage('assets/ki.png'), // Replace with your image path
-                      ),
-                      SizedBox(width: 10),
-                      Flexible(
-                        child: Text(
-                          'Hi! $username, I am Kirti your Guide for Mock Interview',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  // TextFormField(
-                  //   controller: firstNameController, // Set the controller
-                  //   decoration: InputDecoration(labelText: 'First Name'),
-                  //   validator: (value) {
-                  //     if (value!.isEmpty) {
-                  //       return 'Please enter your first name';
-                  //     }
-                  //     return null;
-                  //   },
-                  //   onSaved: (value) {
-                  //     _controller.formData.firstName = value!;
-                  //   },
-                  // ),
-                  // TextFormField(
-                  //   decoration: InputDecoration(labelText: 'Last Name'),
-                  //   validator: (value) {
-                  //     if (value!.isEmpty) {
-                  //       return 'Please enter your last name';
-                  //     }
-                  //     return null;
-                  //   },
-                  //   onSaved: (value) {
-                  //     _controller.formData.lastName = value!;
-                  //   },
-                  // ),
-                  // DropdownButtonFormField<String>(
-                  //   items: ['Android Developer', 'Digital Marketing', 'Designer']
-                  //       .map((String designation) {
-                  //     return DropdownMenuItem<String>(
-                  //       value: designation,
-                  //       child: Text(designation),
-                  //     );
-                  //   }).toList(),
-                  //   onChanged: (value) {
-                  //     _controller.formData.designation = value!;
-                  //   },
-                  //   decoration: InputDecoration(labelText: 'Designation'),
-                  // ),
-                  // DropdownButtonFormField<String>(
-                  //   items: ['IT', 'Finance', 'Healthcare', 'Software Industry']
-                  //       .map((String industry) {
-                  //     return DropdownMenuItem<String>(
-                  //       value: industry,
-                  //       child: Text(industry),
-                  //     );
-                  //   }).toList(),
-                  //   onChanged: (value) {
-                  //     _controller.formData.industry = value!;
-                  //   },
-                  //   decoration: InputDecoration(labelText: 'Industry'),
-                  // ),
-                  // TextFormField(
-                  //   decoration: InputDecoration(labelText: 'Years of Experience'),
-                  //   keyboardType: TextInputType.number,
-                  //   validator: (value) {
-                  //     if (value!.isEmpty) {
-                  //       return 'Please enter your years of experience';
-                  //     }
-                  //     return null;
-                  //   },
-                  //   onSaved: (value) {
-                  //     _controller.formData.yearsOfExperience = value!;
-                  //   },
-                  // ),
-                  Text(
-                    'Please upload your CV to Start AI Mock Interview',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black38),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      File? pickedFile = await _pickFile(context);
-                      if (pickedFile != null) {
-                        setState(() {
-                          _uploadedFilePath = pickedFile.path;
-                        });
-                        if (pickedFile.path.endsWith('.pdf')) {
-                          await _extractTextFromPdf(pickedFile.path);
-                        }
-                      }
-                    },
-                    icon: Icon(Icons.upload_file, color: Colors.teal),
-                    label: Text(
-                      _uploadedFilePath == null ? 'Upload CV PDF' : 'CV Selected',
-                      style: TextStyle(color: Colors.teal),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      textStyle: TextStyle(fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  if (_uploadedFilePath != null) ...[
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Icon(Icons.attach_file, color: Colors.white),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _uploadedFilePath!.split('/').last,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  SizedBox(height: 20),
-                  Center(
-                    child: Column(
-                      children: [
-                        if (_uploadedFilePath == null)
-                          Text(
-                            'Please upload your CV to proceed',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        SizedBox(height: 10),
-                        _isLoading
-                            ? CircularProgressIndicator()
-                            : ElevatedButton(
-                          onPressed: _uploadedFilePath == null
-                              ? null
-                              : () {
-                            if (_formKey.currentState!.validate()) {
-                              _formKey.currentState!.save();
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              _controller.submitForm(id).then((_) {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              });
-                            }
-                          },
-                          child: Text('Click to Start Interview'),
-                          style: ElevatedButton.styleFrom(
-                            primary: _uploadedFilePath == null ? Colors.grey : Colors.teal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      body: _buildBody(), // Dynamically build body based on tab index
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -401,32 +223,240 @@ class _FormPageState extends State<FormPage> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.teal,
-        onTap: _onItemTapped,
+        onTap: _onItemTapped, // Call _onItemTapped on tab change
       ),
     );
   }
 
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    switch (index) {
+  // Method to build body based on tab index
+  Widget _buildBody() {
+    switch (_selectedIndex) {
       case 0:
-      // Handle Home tab
-        break;
+        return _buildHomeTab();
       case 1:
-      // Handle Quiz tab
-        break;
+        return _buildQuizTab();
       case 2:
-      // Handle Profile tab.
-      //   Get.to(ProfilePage(id: id));
-        Get.toNamed('/profiledetails', arguments: {'id': id,'username':username});
-        break;
+        return _buildProfileTab();
+      default:
+        return Container(); // Placeholder; handle invalid index case
     }
   }
+
+  // Placeholder methods for different tabs; replace with your content
+  Widget _buildHomeTab() {
+    // return Center(
+    //   child: Text('Home Tab Content'),
+    // );
+
+    return Scaffold(
+        // appBar: AppBar(
+        //   title: Text('Hi! $username', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        //   centerTitle: false,
+        //   elevation: 0,
+        //   backgroundColor: Colors.teal,
+        // ),
+        body: Container(
+        margin: EdgeInsets.symmetric(horizontal: 10,vertical:10),
+    decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(15),
+    gradient: LinearGradient(
+    colors: [Colors.orangeAccent, Colors.tealAccent],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    ),
+    ),
+    child: Padding(
+    padding: EdgeInsets.all(25.0),
+    child: SingleChildScrollView(
+    child: Form(
+    key: _formKey,
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+    Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    CircleAvatar(
+    radius: 25,
+    backgroundImage: AssetImage('assets/ki.png'), // Replace with your image path
+    ),
+    SizedBox(width: 10),
+    Flexible(
+    child: Text(
+    'Hi! $username, I am Kirti your Guide for Mock Interview',
+    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    ),
+    ),
+    ],
+    ),
+    SizedBox(height: 20),
+    // TextFormField(
+    //   controller: firstNameController, // Set the controller
+    //   decoration: InputDecoration(labelText: 'First Name'),
+    //   validator: (value) {
+    //     if (value!.isEmpty) {
+    //       return 'Please enter your first name';
+    //     }
+    //     return null;
+    //   },
+    //   onSaved: (value) {
+    //     _controller.formData.firstName = value!;
+    //   },
+    // ),
+    // TextFormField(
+    //   decoration: InputDecoration(labelText: 'Last Name'),
+    //   validator: (value) {
+    //     if (value!.isEmpty) {
+    //       return 'Please enter your last name';
+    //     }
+    //     return null;
+    //   },
+    //   onSaved: (value) {
+    //     _controller.formData.lastName = value!;
+    //   },
+    // ),
+    // DropdownButtonFormField<String>(
+    //   items: ['Android Developer', 'Digital Marketing', 'Designer']
+    //       .map((String designation) {
+    //     return DropdownMenuItem<String>(
+    //       value: designation,
+    //       child: Text(designation),
+    //     );
+    //   }).toList(),
+    //   onChanged: (value) {
+    //     _controller.formData.designation = value!;
+    //   },
+    //   decoration: InputDecoration(labelText: 'Designation'),
+    // ),
+    // DropdownButtonFormField<String>(
+    //   items: ['IT', 'Finance', 'Healthcare', 'Software Industry']
+    //       .map((String industry) {
+    //     return DropdownMenuItem<String>(
+    //       value: industry,
+    //       child: Text(industry),
+    //     );
+    //   }).toList(),
+    //   onChanged: (value) {
+    //     _controller.formData.industry = value!;
+    //   },
+    //   decoration: InputDecoration(labelText: 'Industry'),
+    // ),
+    // TextFormField(
+    //   decoration: InputDecoration(labelText: 'Years of Experience'),
+    //   keyboardType: TextInputType.number,
+    //   validator: (value) {
+    //     if (value!.isEmpty) {
+    //       return 'Please enter your years of experience';
+    //     }
+    //     return null;
+    //   },
+    //   onSaved: (value) {
+    //     _controller.formData.yearsOfExperience = value!;
+    //   },
+    // ),
+    Text(
+    'Please upload your CV to Start AI Mock Interview',
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black38),
+    ),
+    SizedBox(height: 10),
+    ElevatedButton.icon(
+    onPressed: () async {
+    File? pickedFile = await _pickFile(context);
+    if (pickedFile != null) {
+    setState(() {
+    _uploadedFilePath = pickedFile.path;
+    });
+    if (pickedFile.path.endsWith('.pdf')) {
+    await _extractTextFromPdf(pickedFile.path);
+    }
+    }
+    },
+    icon: Icon(Icons.upload_file, color: Colors.teal),
+    label: Text(
+    _uploadedFilePath == null ? 'Upload CV PDF' : 'CV Selected',
+    style: TextStyle(color: Colors.teal),
+    ),
+    style: ElevatedButton.styleFrom(
+    primary: Colors.white,
+    padding: EdgeInsets.symmetric(vertical: 15),
+    textStyle: TextStyle(fontSize: 16),
+    shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10),
+    ),
+    ),
+    ),
+    if (_uploadedFilePath != null) ...[
+    SizedBox(height: 10),
+    Row(
+    children: [
+    Icon(Icons.attach_file, color: Colors.white),
+    SizedBox(width: 8),
+    Expanded(
+    child: Text(
+    _uploadedFilePath!.split('/').last,
+    overflow: TextOverflow.ellipsis,
+    style: TextStyle(color: Colors.white),
+    ),
+    ),
+    ],
+    ),
+    ],
+    SizedBox(height: 20),
+    Center(
+    child: Column(
+    children: [
+    if (_uploadedFilePath == null)
+    Text(
+    'Please upload your CV to proceed',
+    style: TextStyle(color: Colors.red),
+    ),
+    SizedBox(height: 10),
+    _isLoading
+    ? CircularProgressIndicator()
+        : ElevatedButton(
+    onPressed: _uploadedFilePath == null
+    ? null
+        : () {
+    if (_formKey.currentState!.validate()) {
+    _formKey.currentState!.save();
+    setState(() {
+    _isLoading = true;
+    });
+    _controller.submitForm(id).then((_) {
+    setState(() {
+    _isLoading = false;
+    });
+    });
+    }
+    },
+    child: Text('Click to Start Interview'),
+    style: ElevatedButton.styleFrom(
+    primary: _uploadedFilePath == null ? Colors.grey : Colors.teal,
+    ),
+    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    )));
+  }
+
+  Widget _buildQuizTab() {
+    return Center(
+      child: Text('Quiz Tab Content'),
+    );
+  }
+
+  Widget _buildProfileTab() {
+       return ProfilePage(id: id,);
+  }
 }
+
+
+
   //   );
   // }
 

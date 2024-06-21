@@ -582,20 +582,20 @@ class _ThirdScreenState extends State<ThirdScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('First Name: ${widget.firstName}', style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 18)),
+                          fontWeight: FontWeight.bold, fontSize: 12)),
                       Text('Last Name: ${widget.lastName}', style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 18)),
+                          fontWeight: FontWeight.bold, fontSize: 12)),
                       Text('Designation: ${widget.designation}',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                       // Text('Industry: ${widget.industry}', style: TextStyle(
                       //     fontWeight: FontWeight.bold, fontSize: 18)),
                       Text('Years of Experience: ${widget.yearsOfExperience}',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                       Text('id: ${widget.id}',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
+                              fontWeight: FontWeight.bold, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -603,7 +603,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
             SizedBox(height: 10),
             Text(
               'Multiple Choice Questions:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             SizedBox(height: 10),
             Expanded(
@@ -611,7 +611,7 @@ class _ThirdScreenState extends State<ThirdScreen> {
                 stream: _controller.stream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator(color: Colors.deepPurple));
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -635,29 +635,33 @@ class _ThirdScreenState extends State<ThirdScreen> {
                               return Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${index + 1}. $questionText'),
-                                  if (options != null && options is List &&
-                                      options.isNotEmpty)
+                                  Text(
+                                    '${index + 1}. $questionText',
+                                    style: TextStyle(fontSize: 16),  // Set the font size here
+                                  ),
+                                  if (options != null && options is List && options.isNotEmpty)
                                     ...options.map((option) {
                                       return RadioListTile<int>(
-                                        title: Text(option),
+                                        title: Text(
+                                          option,
+                                          style: TextStyle(fontSize: 14),  // Set the font size here
+                                        ),
                                         value: options.indexOf(option),
                                         groupValue: _selectedAnswers[index],
                                         onChanged: (int? value) {
                                           setState(() {
                                             _selectedAnswers[index] = value!;
-                                            List<String> stringOptions = options
-                                                .map((option) =>
-                                                option.toString()).toList();
-                                            saveUserResponse(widget.id, questionText, value,
-                                                stringOptions);
+                                            List<String> stringOptions = options.map((option) => option.toString()).toList();
+                                            saveUserResponse(widget.id, questionText, value, stringOptions);
                                           });
                                         },
                                       );
                                     }).toList()
                                   else
-                                    Text('No options available'),
-                                  // Handle empty options gracefully
+                                    Text(
+                                      'No options available',
+                                      style: TextStyle(fontSize: 14),  // Set the font size here
+                                    ),
                                   SizedBox(height: 10),
                                 ],
                               );
@@ -665,26 +669,11 @@ class _ThirdScreenState extends State<ThirdScreen> {
                           ),
                         ),
                         SizedBox(height: 20),
-                        // Add spacing between ListView.builder and the submit button
-                        // Center(
-                        //   child: SizedBox(
-                        //     width: 200, // Set the desired width here
-                        //     child: ElevatedButton(
-                        //       onPressed: () {
-                        //         _fetchScore();
-                        //         // Add functionality to submit button
-                        //       },
-                        //       child: Text('Submit',style: TextStyle(
-                        //           fontWeight: FontWeight.bold, fontSize: 18)),
-                        //     ),
-                        //   ),
-                        // ),
-
                         Center(
                           child: CommonWidget(
                             text: 'Submit',
                             onPressed: () {
-                                     _fetchScore(widget.id);
+                              _fetchScore(widget.id);
                             },
                           ),
                         ),
@@ -693,7 +682,96 @@ class _ThirdScreenState extends State<ThirdScreen> {
                   }
                 },
               ),
-            ),
+            )
+
+            // Expanded(
+            //   child: StreamBuilder<List<Map<String, dynamic>>>(
+            //     stream: _controller.stream,
+            //     builder: (context, snapshot) {
+            //       if (snapshot.connectionState == ConnectionState.waiting) {
+            //         return Center(child: CircularProgressIndicator());
+            //       } else if (snapshot.hasError) {
+            //         return Center(child: Text('Error: ${snapshot.error}'));
+            //       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            //         return Center(child: Text('No data available'));
+            //       } else {
+            //         var data = snapshot.data!;
+            //         return Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             Expanded(
+            //               child: ListView.builder(
+            //                 itemCount: data.length,
+            //                 itemBuilder: (context, index) {
+            //                   var questionData = data[index];
+            //                   var questionText = questionData['question_text'];
+            //                   var options = questionData['options'];
+            //
+            //                   print('Question: $questionText');
+            //                   print('Options: $options');
+            //
+            //                   return Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.start,
+            //                     children: [
+            //                       Text('${index + 1}. $questionText'),
+            //                       if (options != null && options is List &&
+            //                           options.isNotEmpty)
+            //                         ...options.map((option) {
+            //                           return RadioListTile<int>(
+            //                             title: Text(option),
+            //                             value: options.indexOf(option),
+            //                             groupValue: _selectedAnswers[index],
+            //                             onChanged: (int? value) {
+            //                               setState(() {
+            //                                 _selectedAnswers[index] = value!;
+            //                                 List<String> stringOptions = options
+            //                                     .map((option) =>
+            //                                     option.toString()).toList();
+            //                                 saveUserResponse(widget.id, questionText, value,
+            //                                     stringOptions);
+            //                               });
+            //                             },
+            //                           );
+            //                         }).toList()
+            //                       else
+            //                         Text('No options available'),
+            //                       // Handle empty options gracefully
+            //                       SizedBox(height: 10),
+            //                     ],
+            //                   );
+            //                 },
+            //               ),
+            //             ),
+            //             SizedBox(height: 20),
+            //             // Add spacing between ListView.builder and the submit button
+            //             // Center(
+            //             //   child: SizedBox(
+            //             //     width: 200, // Set the desired width here
+            //             //     child: ElevatedButton(
+            //             //       onPressed: () {
+            //             //         _fetchScore();
+            //             //         // Add functionality to submit button
+            //             //       },
+            //             //       child: Text('Submit',style: TextStyle(
+            //             //           fontWeight: FontWeight.bold, fontSize: 18)),
+            //             //     ),
+            //             //   ),
+            //             // ),
+            //
+            //             Center(
+            //               child: CommonWidget(
+            //                 text: 'Submit',
+            //                 onPressed: () {
+            //                          _fetchScore(widget.id);
+            //                 },
+            //               ),
+            //             ),
+            //           ],
+            //         );
+            //       }
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),

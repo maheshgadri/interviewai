@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
             name: '/profiledetails',
             page: () => ProfilePage(id: Get.arguments['id']), // Pass the id from arguments
           ),
+
           GetPage(name: '/form', page: () => FormPage()),
           // GetPage(name: '/chat', page: () => ChatScreen(messages: [])), // Dummy initial messages
           GetPage(
